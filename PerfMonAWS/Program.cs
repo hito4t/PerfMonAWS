@@ -108,9 +108,10 @@ namespace PerfMonAWS
         {
             try
             {
-                using (Publisher publisher = new Publisher())
+
+                using (Publishers publishers = new Publishers())
                 {
-                    publish(publisher);
+                    publish(publishers);
                 }
             }
             catch (Exception e)
@@ -119,7 +120,7 @@ namespace PerfMonAWS
             }
         }
 
-        private static void publish(Publisher publisher)
+        private static void publish(Publishers publishers)
         {
             int initialInterval = 1000; // milliseconds
             int maxInterval = 1000 * 60; // milliseconds
@@ -129,7 +130,7 @@ namespace PerfMonAWS
             {
                 try
                 {
-                    publishFiles(publisher);
+                    publishFiles(publishers);
 
                     interval = initialInterval;
                 }
@@ -146,7 +147,7 @@ namespace PerfMonAWS
             }
         }
 
-        private static void publishFiles(Publisher publisher)
+        private static void publishFiles(Publishers publishers)
         {
             List<string> paths = new List<string>(Directory.GetFiles(dataDir));
             paths.Sort();
@@ -156,7 +157,7 @@ namespace PerfMonAWS
             {
                 string path = paths[i];
                 string message = File.ReadAllText(path, encoding);
-                publisher.Publish(message);
+                publishers.Publish(message);
                 File.Delete(path);
 
                 Console.WriteLine(Path.GetFileName(path) + " published.");

@@ -16,8 +16,9 @@ namespace PerfMonAWS
     {
         private AmazonIotDataClient client;
         private string topic;
+        private bool _usingProxy;
 
-        public Publisher()
+        public Publisher(bool ignoreProxy)
         {
             string awsAccessKey = ConfigurationManager.AppSettings["AWSAccessKey"];
             string awsSecretKey = ConfigurationManager.AppSettings["AWSSecretKey"];
@@ -32,7 +33,7 @@ namespace PerfMonAWS
             string proxyUser = ConfigurationManager.AppSettings["ProxyUser"];
             string proxyPassword = ConfigurationManager.AppSettings["ProxyPassword"];
 
-            if (!string.IsNullOrEmpty(proxyHost))
+            if (!ignoreProxy && !string.IsNullOrEmpty(proxyHost))
             {
                 config.ProxyHost = proxyHost;
                 config.ProxyPort = int.Parse(proxyPort);
@@ -40,10 +41,19 @@ namespace PerfMonAWS
                 {
                     config.ProxyCredentials = new NetworkCredential(proxyUser, proxyPassword);
                 }
+                _usingProxy = true;
             }
             client = new AmazonIotDataClient(credentials, config);
 
             topic = ConfigurationManager.AppSettings["AWSIoTTopic"];
+        }
+
+        public bool UsingProxy
+        {
+            get
+            {
+                return _usingProxy;
+            }
         }
 
         public void Publish(string message)
