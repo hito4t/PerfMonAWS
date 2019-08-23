@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 
@@ -8,11 +9,37 @@ namespace PerfMonAWS
 {
     class Program
     {
+        private static Encoding encoding = Encoding.UTF8;
+        private static string dataDir;
+
         static void Main(string[] args)
         {
-            using (PerfMonLib perfMon = new PerfMonLib())
+            dataDir = Path.Combine(Environment.CurrentDirectory, "data");
+            Directory.CreateDirectory(dataDir);
+
+            Thread monitorThread = new Thread(new ThreadStart(monitor));
+            monitorThread.Start();
+
+            Thread publisherThread = new Thread(new ThreadStart(publish));
+            publisherThread.Start();
+
+            while (true)
             {
-                using (Publisher publisher = new Publisher())
+                if (!monitorThread.IsAlive || !publisherThread.IsAlive)
+                {
+                    break;
+                }
+
+                Thread.Sleep(500);
+            }
+        }
+
+
+        private static void monitor()
+        {
+            try
+            {
+                using (PerfMonLib perfMon = new PerfMonLib())
                 {
                     int interval = 5;
                     while (true)
@@ -35,13 +62,19 @@ namespace PerfMonAWS
 
                         Console.WriteLine(message);
 
-                        publisher.Publish(message);
+                        string path = Path.Combine(dataDir, timestamp.Replace("-", "").Replace(":", "") + ".json");
+                        File.WriteAllText(path, message, encoding);
+
+                        //publisher.Publish(message);
 
                         Thread.Sleep(interval * 1000);
                     }
                 }
+            } 
+            catch (Exception e)
+            {
+                log(e);
             }
-
         }
 
         private static string CreateJsonItem(string key, object value)
@@ -64,6 +97,52 @@ namespace PerfMonAWS
                 item += value;
             }
             return item;
+        }
+
+        private static void publish()
+        {
+            try
+            {
+                using (Publisher publisher = new Publisher())
+                {
+                    while (true)
+                    {
+                        List<string> paths = new List<string>(Directory.GetFiles(dataDir));
+                        paths.Sort();
+
+                        // the last file may be being written.
+                        for (int i = 0; i < paths.Count - 1; i++)
+                        {
+                            string path = paths[i];
+                            string message = File.ReadAllText(path, encoding);
+                            publisher.Publish(message);
+                            File.Delete(path);
+
+                            Console.WriteLine(Path.GetFileName(path) + " published.");
+                        }
+
+                        Thread.Sleep(1000);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log(e);
+            }
+        }
+
+        private static void log(Exception e)
+        {
+            using (StreamWriter writer = new StreamWriter("PerfMonAWS.log", true, encoding))
+            {
+                writer.Write(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"));
+                writer.Write(" ");
+                writer.WriteLine(e.Message);
+                writer.WriteLine(e.StackTrace);
+            }
+
+            Console.WriteLine(e.Message);
+            Console.WriteLine(e.StackTrace);
         }
 
     }
