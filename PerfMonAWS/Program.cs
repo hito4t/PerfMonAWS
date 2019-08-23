@@ -41,39 +41,44 @@ namespace PerfMonAWS
             {
                 using (PerfMonLib perfMon = new PerfMonLib())
                 {
-                    int interval = 5;
-                    while (true)
-                    {
-                        PerfData data = perfMon.GetValues();
-
-                        DateTime now = DateTime.Now;
-                        string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ss") + now.ToString("zzz").Replace(":", "");
-                        string message = "{"
-                            + CreateJsonItem("timestamp", timestamp)
-                            + ","
-                            + CreateJsonItem("cpu", data.ProcessorUtilization)
-                            + ","
-                            + CreateJsonItem("memory", data.AvailableMemoryMB)
-                            + ","
-                            + CreateJsonItem("process", data.ActiveProcess)
-                            + ","
-                            + CreateJsonItem("interval", interval)
-                            + "}";
-
-                        Console.WriteLine(message);
-
-                        string path = Path.Combine(dataDir, timestamp.Replace("-", "").Replace(":", "") + ".json");
-                        File.WriteAllText(path, message, encoding);
-
-                        //publisher.Publish(message);
-
-                        Thread.Sleep(interval * 1000);
-                    }
+                    monitor(perfMon);
                 }
             } 
             catch (Exception e)
             {
                 log(e);
+            }
+        }
+
+        private static void monitor(PerfMonLib perfMon)
+        {
+            int interval = 5;
+            while (true)
+            {
+                PerfData data = perfMon.GetValues();
+
+                DateTime now = DateTime.Now;
+                string timestamp = now.ToString("yyyy-MM-ddTHH:mm:ss") + now.ToString("zzz").Replace(":", "");
+                string message = "{"
+                    + CreateJsonItem("timestamp", timestamp)
+                    + ","
+                    + CreateJsonItem("cpu", data.ProcessorUtilization)
+                    + ","
+                    + CreateJsonItem("memory", data.AvailableMemoryMB)
+                    + ","
+                    + CreateJsonItem("process", data.ActiveProcess)
+                    + ","
+                    + CreateJsonItem("interval", interval)
+                    + "}";
+
+                Console.WriteLine(message);
+
+                string path = Path.Combine(dataDir, timestamp.Replace("-", "").Replace(":", "") + ".json");
+                File.WriteAllText(path, message, encoding);
+
+                //publisher.Publish(message);
+
+                Thread.Sleep(interval * 1000);
             }
         }
 
@@ -105,29 +110,56 @@ namespace PerfMonAWS
             {
                 using (Publisher publisher = new Publisher())
                 {
-                    while (true)
-                    {
-                        List<string> paths = new List<string>(Directory.GetFiles(dataDir));
-                        paths.Sort();
-
-                        // the last file may be being written.
-                        for (int i = 0; i < paths.Count - 1; i++)
-                        {
-                            string path = paths[i];
-                            string message = File.ReadAllText(path, encoding);
-                            publisher.Publish(message);
-                            File.Delete(path);
-
-                            Console.WriteLine(Path.GetFileName(path) + " published.");
-                        }
-
-                        Thread.Sleep(1000);
-                    }
+                    publish(publisher);
                 }
             }
             catch (Exception e)
             {
                 log(e);
+            }
+        }
+
+        private static void publish(Publisher publisher)
+        {
+            int initialInterval = 1000; // milliseconds
+            int maxInterval = 1000 * 60; // milliseconds
+            int interval = initialInterval;
+
+            while (true)
+            {
+                try
+                {
+                    publishFiles(publisher);
+
+                    interval = initialInterval;
+                }
+                catch (Amazon.Runtime.AmazonServiceException e)
+                {
+                    log(e);
+                    if (interval < maxInterval)
+                    {
+                        interval *= 2;
+                    }
+                }
+
+                Thread.Sleep(interval);
+            }
+        }
+
+        private static void publishFiles(Publisher publisher)
+        {
+            List<string> paths = new List<string>(Directory.GetFiles(dataDir));
+            paths.Sort();
+
+            // the last file may be being written.
+            for (int i = 0; i < paths.Count - 1; i++)
+            {
+                string path = paths[i];
+                string message = File.ReadAllText(path, encoding);
+                publisher.Publish(message);
+                File.Delete(path);
+
+                Console.WriteLine(Path.GetFileName(path) + " published.");
             }
         }
 
