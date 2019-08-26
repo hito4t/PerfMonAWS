@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
-
+using System.Diagnostics;
 
 namespace PerfMonAWS
 {
@@ -11,15 +12,27 @@ namespace PerfMonAWS
     {
         static void Main(string[] args)
         {
-            MonitorPublisher monitorPublisher = new MonitorPublisher();
-            monitorPublisher.Start();
-
-            while (monitorPublisher.IsAlive)
+            if (args.Length == 1 && args[0] == "-background")
             {
-                Thread.Sleep(500);
+                ProcessStartInfo psi = new ProcessStartInfo();
+                psi.FileName = Assembly.GetEntryAssembly().Location;
+                psi.CreateNoWindow = true;
+                psi.UseShellExecute = false;
+                Process p = Process.Start(psi);
+                Console.WriteLine(Path.GetFileName(psi.FileName) + " is started in the background.");
             }
+            else
+            {
+                MonitorPublisher monitorPublisher = new MonitorPublisher();
+                monitorPublisher.Start();
 
-            monitorPublisher.Stop();
+                while (monitorPublisher.IsAlive)
+                {
+                    Thread.Sleep(500);
+                }
+
+                monitorPublisher.Stop();
+            }
         }
     }
 }

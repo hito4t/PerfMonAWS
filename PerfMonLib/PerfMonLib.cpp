@@ -58,6 +58,7 @@ extern "C" {
 		PDH_STATUS result;
 
 		activeProcess[0] = '\0';
+		// can't get from Windows Service.
 		HWND hWnd = GetForegroundWindow();
 		if (hWnd != NULL) {
 			DWORD processId;
