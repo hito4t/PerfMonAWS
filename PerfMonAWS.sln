@@ -4,8 +4,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfMonAWS", "PerfMonAWS\PerfMonAWS.csproj", "{8CA657AC-2078-4768-A2CD-FD0AE977846A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4A1F46A3-E1B6-4A88-88F8-FF619A90C31E} = {4A1F46A3-E1B6-4A88-88F8-FF619A90C31E}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PerfMonLib", "PerfMonLib\PerfMonLib.vcxproj", "{4A1F46A3-E1B6-4A88-88F8-FF619A90C31E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfMonAWSService", "PerfMonAWSService\PerfMonAWSService.csproj", "{311183BA-7B47-42C7-833B-2D37D0EAC405}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,6 +42,16 @@ Global
 		{4A1F46A3-E1B6-4A88-88F8-FF619A90C31E}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{4A1F46A3-E1B6-4A88-88F8-FF619A90C31E}.Release|Win32.ActiveCfg = Release|Win32
 		{4A1F46A3-E1B6-4A88-88F8-FF619A90C31E}.Release|Win32.Build.0 = Release|Win32
+		{311183BA-7B47-42C7-833B-2D37D0EAC405}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{311183BA-7B47-42C7-833B-2D37D0EAC405}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{311183BA-7B47-42C7-833B-2D37D0EAC405}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{311183BA-7B47-42C7-833B-2D37D0EAC405}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{311183BA-7B47-42C7-833B-2D37D0EAC405}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{311183BA-7B47-42C7-833B-2D37D0EAC405}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{311183BA-7B47-42C7-833B-2D37D0EAC405}.Release|Any CPU.Build.0 = Release|Any CPU
+		{311183BA-7B47-42C7-833B-2D37D0EAC405}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{311183BA-7B47-42C7-833B-2D37D0EAC405}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{311183BA-7B47-42C7-833B-2D37D0EAC405}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
